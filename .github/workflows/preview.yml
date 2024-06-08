@@ -1,0 +1,43 @@
+name: Deploy PR previews
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+
+concurrency: preview-${{ github.ref }}
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        working-directory: front
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: ソースのビルド
+        run: yarn && yarn build
+
+      - name: プレビューのデプロイ
+        uses: rossjrw/pr-preview-action@v1
+        if: contains(fromJSON('["opened", "reopened", "synchronize"]'), github.event.action)
+        with:
+          source-dir: ./front/build/
+          action: deploy
+
+      - name: PRがマージされた時にプレビューを削除する
+        uses: rossjrw/pr-preview-action@v1
+        if: github.event.action == 'closed' && !github.event.pull_request.merged
+        with:
+          source-dir: ./build/
+          action: remove
