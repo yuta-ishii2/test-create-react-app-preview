@@ -32,7 +32,7 @@ jobs:
         uses: rossjrw/pr-preview-action@v1
         if: contains(fromJSON('["opened", "reopened", "synchronize"]'), github.event.action)
         with:
-          source-dir: ./build/
+          source-dir: build/
           action: deploy
 
       - name: PRがマージされた時にプレビューを削除する
